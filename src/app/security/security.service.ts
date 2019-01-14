@@ -6,7 +6,7 @@ import { of } from 'rxjs';
 import { AppUserAuth } from './app-user-auth';
 import { AppUser } from './app-user';
 
-const API_URL = "http://localhost:5000/api/security/";
+const API_URL = 'http://localhost:5000/api/security/';
 
 const httpOptions = {
   headers: new HttpHeaders({
@@ -24,7 +24,7 @@ export class SecurityService {
     // Initialize security object
     this.resetSecurityObject();
 
-    return this.http.post<AppUserAuth>(API_URL + "login",
+    return this.http.post<AppUserAuth>(API_URL + 'login',
       entity, httpOptions).pipe(
         tap(resp => {
           // Use object assign to update the current object
@@ -32,7 +32,7 @@ export class SecurityService {
           //       because that destroys all references to object
           Object.assign(this.securityObject, resp);
           // Store into local storage
-          localStorage.setItem("bearerToken",
+          localStorage.setItem('bearerToken',
             this.securityObject.bearerToken);
         }));
   }
@@ -42,11 +42,64 @@ export class SecurityService {
   }
 
   resetSecurityObject(): void {
-    this.securityObject.userName = "";
-    this.securityObject.bearerToken = "";
+    this.securityObject.userName = '';
+    this.securityObject.bearerToken = '';
     this.securityObject.isAuthenticated = false;
     this.securityObject.claims = [];
 
-    localStorage.removeItem("bearerToken");
+    localStorage.removeItem('bearerToken');
+  }
+
+  // This method can be called a couple of different ways
+  // *hasClaim="'claimType'"  // Assumes claimValue is true
+  // *hasClaim="'claimType:value'" // Compares claimValue to value
+  // *hasClaim="['claimType1','claimType2:value','claimType3']"
+  hasClaim(claimType: string): boolean {
+    let ret = false;
+
+    // See if an array of values was passed in.
+    if (typeof claimType === 'string') {
+      ret = this.isClaimValid(claimType);
+    } else {
+      const claims: string[] = claimType;
+      if (claims) {
+        for (let index = 0; index < claims.length; index++) {
+          ret = this.isClaimValid(claims[index]);
+          // If one is successful, then let them in
+          if (ret) {
+            break;
+          }
+        }
+      }
+    }
+
+    return ret;
+  }
+
+  private isClaimValid(claimType: string): boolean {
+    let ret = false;
+    let auth: AppUserAuth;
+    let claimValue = '';
+
+    // Retrieve security object
+    auth = this.securityObject;
+    if (auth) {
+      // See if the claim type has a value
+      // *hasClaim="'claimType:value'"
+      if (claimType.indexOf(':') >= 0) {
+        const words: string[] = claimType.split(':');
+        claimType = words[0].toLowerCase();
+        claimValue = words[1];
+      } else {
+        claimType = claimType.toLowerCase();
+        // Get the claim value or assume 'true'
+        claimValue = claimValue ? claimValue : 'true';
+      }
+
+      // Attempt to find the claim
+      ret = auth.claims.find(c => c.claimType.toLowerCase() === claimType && c.claimValue === claimValue) != null;
+      return ret;
+    }
+
   }
 }

@@ -1,4 +1,4 @@
-<nav class="navbar nav-justified navbar-fixed-top 
+<nav class="navbar nav-justified navbar-fixed-top
             navbar-inverse" role="navigation">
   <div class="container">
     <div class="navbar-header">
@@ -8,17 +8,21 @@
     </div>
     <ul class="nav navbar-nav">
       <li>
-        <a routerLink="/products"
-           *ngIf="securityObject.canAccessProducts">Products</a>
+        <ng-container *ngIf="securityObject.isAuthenticated">
+            <a routerLink="/products"
+              *ptcHasClaim="'canAccessProducts'">Products</a>
+        </ng-container>
       </li>
       <li>
-        <a routerLink="/categories"
-           *ngIf="securityObject.canAccessCategories">Categories</a>
-      </li>      
+        <ng-container *ngIf="securityObject.isAuthenticated">
+          <a routerLink="/categories"
+            *ptcHasClaim="'canAccessCategories'">Categories</a>
+        </ng-container>
+      </li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
       <li>
-        <a routerLink="login" 
+        <a routerLink="login"
            *ngIf="!securityObject.isAuthenticated">
           Login
         </a>
@@ -27,7 +31,7 @@
           Logout {{securityObject.userName}}
         </a>
       </li>
-    </ul>    
+    </ul>
   </div>
 </nav>
 <div class="container body-content">

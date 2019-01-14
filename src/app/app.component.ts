@@ -7,14 +7,14 @@ import { SecurityService } from './security/security.service';
   templateUrl: './app.component.html'
 })
 export class AppComponent {
-  title: string = "Paul's Training Company";
+  title = 'Paul\'s Training Company';
   securityObject: AppUserAuth = null;
-  
+
   constructor(private securityService: SecurityService) {
     this.securityObject = securityService.securityObject;
   }
 
-  logout(): void { 
+  logout(): void {
     this.securityService.logout();
-  }  
+  }
 }
